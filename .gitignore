@@ -1,0 +1,13 @@
+# Archivos compilados
+*.class
+*.jar
+
+# Carpetas de IntelliJ
+.idea/
+*.iml
+
+# Carpetas de VSCode
+.vscode/
+
+# Output
+output.csv
