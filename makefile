@@ -1,8 +1,8 @@
 all:
-	javac *.java
+	javac -d . src/*.java
 
-run:
-	java T1Stage1 config.txt move.txt
+run: all
+	java T1Stage3 config.txt move.txt
 
 clean:
-	rm -f *.class
+	del /Q *.class

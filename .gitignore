@@ -1,3 +1,4 @@
+
 # Archivos compilados
 *.class
 *.jar
@@ -11,3 +12,6 @@
 
 # Output
 output.csv
+
+bin/
+
