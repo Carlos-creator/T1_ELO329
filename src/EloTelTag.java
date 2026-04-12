@@ -2,8 +2,8 @@ public class EloTelTag extends Equipo {
     protected String name;
 
     public EloTelTag(String owner_name, String name, float x, float y) {
-        this.name = name;
         super(owner_name, x, y);
+        this.name = name;
     }
 
     public String getName(){
