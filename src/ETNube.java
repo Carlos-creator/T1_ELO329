@@ -21,9 +21,9 @@ public class ETNube{
         location.setLocation(x, y);
     }
 
-    public Point2D getLocation(String owner, String equipment){
-        for (Data data : cloudData){
-            if (data.ownerName == owner && data.equipmentName ==  equipment){
+    public Point2D getLocation(String owner, String equipment) {
+        for (Data data : cloudData) {
+            if (data.ownerName.equals(owner) && data.equipmentName.equals(equipment)) {
                 return data.location;
             }
         }
