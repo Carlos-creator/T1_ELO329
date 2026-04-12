@@ -1,28 +1,13 @@
-import java.util.ArrayList;
-
 public class Viewer {
-
     private String ownerName;
+    private ETNube nube;
 
-    public Viewer(String ownerName) {
+    public Viewer(String ownerName, ETNube nube) {
         this.ownerName = ownerName;
+        this.nube = nube;
     }
 
-    public void show(ArrayList<EloTelTag> tags) {
-        System.out.println("=== FindMy de " + ownerName + " ===");
-
-        boolean found = false;
-
-        for (EloTelTag tag : tags) {
-            if (tag.owner_name.equals(ownerName)) {
-                System.out.println(tag.owner_name + "." + tag.name +
-                                   " x:" + tag.x + " y:" + tag.y);
-                found = true;
-            }
-        }
-
-        if (!found) {
-            System.out.println("No hay equipos para " + ownerName);
-        }
+    public void show() {
+        nube.showOwnerLocations(ownerName);
     }
 }
