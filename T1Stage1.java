@@ -4,154 +4,208 @@ import java.io.File;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.PrintStream;
 
+/**
+ * Stage 1: Reads config and move files, tracks EloTelTag positions,
+ * and writes output.csv.
+ *
+ * Design mirrors Stage 2's structure so Stage 2 is a natural extension:
+ *   - setupSimulator(Scanner)       -> same signature as Stage 2
+ *   - runSimulation(Scanner, PrintStream) -> same signature as Stage 2
+ *   - setupPersonEquipment(Scanner) -> same private helper as Stage 2
+ *   - setupEloTags(Scanner, String) -> same private helper as Stage 2
+ *
+ * Key differences vs Stage 2 (intentional for Stage 1 scope):
+ *   - No Territory, no ETNube, no Cellular: positions tracked directly here.
+ *   - Output is output.csv showing raw tag coordinates after each command.
+ *   - Celular and Tablet lines are skipped (not yet modeled).
+ */
 public class T1Stage1 {
 
-    // Write the header of the CSV file
-    public static void writeHeader(PrintWriter pw, ArrayList<EloTelTag> tags) {
-        StringBuilder header = new StringBuilder();
-        header.append("Step");
-        for (EloTelTag tag : tags) {
-            header.append("\t").append(tag.owner_name + "." + tag.name + ".x");
-            header.append("\t").append(".y");
-        }
-        pw.println(header.toString());
-    }
+    // All tags discovered during setup
+    private ArrayList<EloTelTag> tags = new ArrayList<>();
 
-    // Write a row with the current positions of all tags
-    public static void writeRow(PrintWriter pw, int step, ArrayList<EloTelTag> tags) {
-        StringBuilder row = new StringBuilder();
-        row.append(step);
-        for (EloTelTag tag : tags) {
-            row.append("\t").append(tag.x);
-            row.append("\t").append(tag.y);
-        }
-        pw.println(row.toString());
-    }
+    // CSV writer (opened before runSimulation, closed after)
+    private PrintWriter csvWriter;
 
-    public static void main(String[] args) {
-
-        // Check arguments
-        if (args.length < 2) {
+    // ---------------------------------------------------------------
+    // Entry point
+    // ---------------------------------------------------------------
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) {
             System.out.println("Use: java T1Stage1 config.txt move.txt");
-            return;
+            System.exit(-1);
         }
 
-        String file_config = args[0];
-        ArrayList<String> buffer_file_config = new ArrayList<>();
-        String file_move = args[1];
-        ArrayList<String> buffer_file_move = new ArrayList<>();
+        Scanner confScanner = new Scanner(new File(args[0]));
+        Scanner moveScanner = new Scanner(new File(args[1]));
 
-        // Read and save config file
+        T1Stage1 stage = new T1Stage1();
+        stage.setupSimulator(confScanner);
+        stage.runSimulation(moveScanner, System.out);
+
+        confScanner.close();
+        moveScanner.close();
+    }
+
+    // ---------------------------------------------------------------
+    // Setup  (same signature as Stage 2)
+    // ---------------------------------------------------------------
+
+    /** Reads the configuration file and creates all EloTelTag objects. */
+    public void setupSimulator(Scanner in) {
+        int personNumber = in.nextInt();
+        for (int i = 0; i < personNumber; i++) {
+            setupPersonEquipment(in);
+        }
+    }
+
+    /**
+     * Reads one person's block from the config file.
+     * Format:
+     *   <name> <numTags> <hasTablet>
+     *   <celular_x> <celular_y>
+     *   (<tagName> <x> <y>)*     <- all on one line
+     *   [<tablet_x> <tablet_y>]  <- only if hasTablet == 1
+     */
+    private void setupPersonEquipment(Scanner in) {
+        String personName  = in.next();
+        int    numTags     = in.nextInt();
+        boolean hasTablet  = in.nextInt() == 1;
+
+        // Skip celular position (not modeled in Stage 1)
+        in.nextFloat();
+        in.nextFloat();
+
+        // Read all tags for this person
+        for (int j = 0; j < numTags; j++) {
+            setupEloTags(in, personName);
+        }
+
+        // Skip tablet position if present (not modeled in Stage 1)
+        if (hasTablet) {
+            in.nextFloat();
+            in.nextFloat();
+        }
+    }
+
+    /**
+     * Reads one EloTelTag entry and adds it to the tag list.
+     * Same signature as Stage 2 so Stage 2 can reuse/override this method.
+     */
+    private void setupEloTags(Scanner in, String personName) {
+        String tagName = in.next();
+        float  x       = in.nextFloat();
+        float  y       = in.nextFloat();
+
+        // Constructor order: (ownerName, tagName, x, y) - matches Stage 2
+        EloTelTag tag = new EloTelTag(personName, tagName, x, y);
+        tags.add(tag);
+    }
+
+    // ---------------------------------------------------------------
+    // Simulation  (same signature as Stage 2)
+    // ---------------------------------------------------------------
+
+    /**
+     * Processes move commands and writes output.csv.
+     * In Stage 1 positions are tracked directly (no ETNube involved).
+     * In Stage 2 this method will delegate reporting to ETNube.
+     */
+    public void runSimulation(Scanner in, PrintStream output) {
+        // Open CSV output file
         try {
-            Scanner configScanner = new Scanner(new File(file_config));
-            while (configScanner.hasNextLine()) {
-                buffer_file_config.add(configScanner.nextLine());
-            }
-            configScanner.close();
-        } catch (IOException e) {
-            System.out.println("Error reading config file: " + e.getMessage());
-            return;
-        }
-
-        // Read and save move file
-        try {
-            Scanner moveScanner = new Scanner(new File(file_move));
-            while (moveScanner.hasNextLine()) {
-                buffer_file_move.add(moveScanner.nextLine());
-            }
-            moveScanner.close();
-        } catch (IOException e) {
-            System.out.println("Error reading move file: " + e.getMessage());
-            return;
-        }
-
-        // Create EloTelTag objects from config file
-        ArrayList<EloTelTag> tags = new ArrayList<>();
-        int i = 0;
-        int numPeople = Integer.parseInt(buffer_file_config.get(i++));
-
-        for (int p = 0; p < numPeople; p++) {
-
-            // Read person information: name, numTags, hasTablet
-            Scanner personLine = new Scanner(buffer_file_config.get(i++));
-            String ownerName   = personLine.next();
-            int numTags        = personLine.nextInt();
-            int hasTablet      = personLine.nextInt();
-            personLine.close();
-
-            // Skip phone position line
-            i++;
-
-            // Read tags from the same line
-            Scanner tagLine = new Scanner(buffer_file_config.get(i++));
-            for (int t = 0; t < numTags; t++) {
-                String tagName = tagLine.next();
-                double tagX    = tagLine.nextDouble();
-                double tagY    = tagLine.nextDouble();
-
-                // Create EloTelTag object and add to list
-                EloTelTag tag = new EloTelTag(tagName, ownerName, tagX, tagY);
-                tags.add(tag);
-            }
-            tagLine.close();
-
-            // Skip tablet position line if exists
-            if (hasTablet == 1) {
-                i++;
-            }
-        }
-
-        // Create output CSV file
-        PrintWriter pw = null;
-        try {
-            pw = new PrintWriter(new FileWriter("output.csv"));
+            csvWriter = new PrintWriter(new FileWriter("output.csv"));
         } catch (IOException e) {
             System.out.println("Error creating output.csv: " + e.getMessage());
             return;
         }
 
-        // Write CSV header
-        writeHeader(pw, tags);
+        // Write CSV header and initial state (step 0)
+        printHeader(output);
+        printState(output, 0);
 
-        // Print and write initial positions (step 0)
-        System.out.println("=== Initial positions (step 0) ===");
-        for (EloTelTag tag : tags) {
-            System.out.println(tag.owner_name + "." + tag.name +
-                               " x:" + tag.x + " y:" + tag.y);
-        }
-        writeRow(pw, 0, tags);
-
-        // Process move commands
         int step = 1;
-        for (String moveLine : buffer_file_move) {
-
-            Scanner lineMove = new Scanner(moveLine);
-            String object    = lineMove.next();
-            String[] parts   = object.split("\\.");
+        while (in.hasNext()) {
+            // Read "ownerName.equipmentName  dx  dy"
+            String equipment = in.next();
+            String[] parts   = equipment.split("\\.");
             String ownerName = parts[0];
-            String tagName   = parts[1];
-            double dx        = lineMove.nextDouble();
-            double dy        = lineMove.nextDouble();
-            lineMove.close();
+            String equipName = parts[1];
 
-            // Find tag and update position
+            // In Stage 1, skip celular/tablet commands (not modeled yet)
+            if (equipName.equals("celular") || equipName.equals("tablet")) {
+                // Still need to consume the rest of this line's tokens
+                // Check whether this line has dx/dy or a FindMy command
+                String token = in.next();
+                if (!token.equalsIgnoreCase("FindMy")) {
+                    in.nextFloat(); // consume dy
+                }
+                continue;
+            }
+
+            // Skip FindMy commands (not modeled in Stage 1)
+            String token = in.next();
+            if (token.equalsIgnoreCase("FindMy")) {
+                continue;
+            }
+
+            // token is actually dx; read dy normally
+            float dx = Float.parseFloat(token);
+            float dy = in.nextFloat();
+
+            // Find the matching tag and move it
             for (EloTelTag tag : tags) {
-                if (tag.owner_name.equals(ownerName) && tag.name.equals(tagName)) {
+                if (tag.getOwnerName().equals(ownerName) &&
+                    tag.getName().equals(equipName)) {
                     tag.move(dx, dy);
-                    System.out.println("Step " + step + " - Updated " +
-                                       tag.owner_name + "." + tag.name +
-                                       " x:" + tag.x + " y:" + tag.y);
                 }
             }
 
-            // Write current positions of ALL tags after each command
-            writeRow(pw, step, tags);
+            // Write state after this command
+            printState(output, step);
             step++;
         }
 
-        // Close CSV file
-        pw.close();
-        System.out.println("output.csv generated successfully");
+        csvWriter.close();
+        System.out.println("output.csv generated successfully.");
+    }
+
+    // ---------------------------------------------------------------
+    // Output helpers
+    // (named printHeader / printState to match ETNube's API in Stage 2,
+    //  so the migration is straightforward)
+    // ---------------------------------------------------------------
+
+    /**
+     * Prints the CSV header row.
+     * In Stage 2 this responsibility moves to ETNube.printHeader().
+     */
+    private void printHeader(PrintStream output) {
+        StringBuilder header = new StringBuilder("Step");
+        for (EloTelTag tag : tags) {
+            header.append("\t").append(tag.getOwnerName()).append(".")
+                  .append(tag.getName()).append(".x");
+            header.append("\t").append(".y");
+        }
+        String line = header.toString();
+        output.println(line);       // console (optional, useful for debugging)
+        csvWriter.println(line);    // CSV file
+    }
+
+    /**
+     * Prints one data row with the current position of every tag.
+     * In Stage 2 this responsibility moves to ETNube.printState().
+     */
+    private void printState(PrintStream output, int step) {
+        StringBuilder row = new StringBuilder(String.valueOf(step));
+        for (EloTelTag tag : tags) {
+            row.append("\t").append(tag.getX());
+            row.append("\t").append(tag.getY());
+        }
+        String line = row.toString();
+        output.println(line);
+        csvWriter.println(line);
     }
 }

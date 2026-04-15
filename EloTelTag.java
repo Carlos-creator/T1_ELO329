@@ -1,18 +1,18 @@
 public class EloTelTag {
     protected String name;
     protected String owner_name;
-    public double x;
-    public double y;
+    protected float x;
+    protected float y;
 
-    public EloTelTag(String name, String owner_name, double x, double y) {
-        this.name = name;
+    // Constructor matches Stage 2: EloTelTag(personName, tagName, x, y)
+    public EloTelTag(String owner_name, String name, float x, float y) {
         this.owner_name = owner_name;
-        this.x = x;
-        this.y = y;
+        this.name       = name;
+        this.x          = x;
+        this.y          = y;
     }
 
-    // Method to update the tag position
-    public void move(double dx, double dy) {
+    public void move(float dx, float dy) {
         this.x += dx;
         this.y += dy;
     }
