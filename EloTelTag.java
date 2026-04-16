@@ -4,7 +4,6 @@ public class EloTelTag {
     protected float x;
     protected float y;
 
-    // Constructor matches Stage 2: EloTelTag(personName, tagName, x, y)
     public EloTelTag(String owner_name, String name, float x, float y) {
         this.owner_name = owner_name;
         this.name       = name;
@@ -16,4 +15,9 @@ public class EloTelTag {
         this.x += dx;
         this.y += dy;
     }
+
+    public String getName()      { return name; }
+    public String getOwnerName() { return owner_name; }
+    public float  getX()         { return x; }
+    public float  getY()         { return y; }
 }
