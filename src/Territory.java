@@ -9,39 +9,50 @@ public class Territory {
         tags.add(tag);
     }
 
+    public void addTablet(Tablet tablet){
+        tablets.add(tablet);
+    }
+
     public Cellular getCellular(String ownerName){
-        //Busca el celular del usuario
         for (Cellular cell: cellulars){
             if (cell.getOwnerName().equals(ownerName)) return cell;
         }
         return null;
     }
 
-    public EloTelTag getTag(String ownerName , String equipmentName){
-        //lo mismo pero con el tag
+    public EloTelTag getTag(String ownerName, String equipmentName){
         for (EloTelTag tag: tags){
             if (tag.getOwnerName().equals(ownerName) && tag.getName().equals(equipmentName)) return tag;
         }
         return null;
     }
 
+    public Tablet getTablet(String ownerName){
+        for (Tablet tablet: tablets){
+            if (tablet.getOwnerName().equals(ownerName)) return tablet;
+        }
+        return null;
+    }
+
     private Cellular findNearbyCellular(EloTelTag tag){
-        //Revisa hasta encontrar un celular que este cerca del tag
         for (Cellular cell: cellulars) if (tag.isWithinRange(cell)) return cell;
         return null;
     }
 
     public void forEachTagTryToReportLocation(){
-        //Si hay un celular cerca le pide al telefono que actualice la ubicación del tag
         for (EloTelTag tag: tags){
             Cellular nearestCell = findNearbyCellular(tag);
             if (nearestCell != null)
                 nearestCell.reportTagLocation(tag);
         }
+        for (Tablet tablet: tablets){
+            Cellular nearestCell = findNearbyCellular(tablet);
+            if (nearestCell != null)
+                nearestCell.reportTagLocation(tablet);
+        }
     }
-
-    
 
     private ArrayList<Cellular> cellulars = new ArrayList<Cellular>();
     private ArrayList<EloTelTag> tags = new ArrayList<EloTelTag>();
+    private ArrayList<Tablet> tablets = new ArrayList<Tablet>();
 }

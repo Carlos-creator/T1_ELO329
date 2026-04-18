@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(javac -d . src/*.java)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files/Microsoft//**)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/javac\" -d . src/*.java)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/java\" SimulatorTest config.txt move.txt)"
+    ]
+  }
+}

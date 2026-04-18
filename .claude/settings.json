@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E '\\\\.\\(txt|md\\)$|src|\\\\.class')",
+      "Bash(make)"
+    ]
+  }
+}
