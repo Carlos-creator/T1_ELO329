@@ -109,7 +109,9 @@ public class SimulatorTest {
             step++;
 
             if (equipmentName.equals("celular")) {
-                territory.getCellular(personName).move(deltaX, deltaY);
+                Cellular cel = territory.getCellular(personName);
+                cel.move(deltaX, deltaY);
+                nube.updateLocation(personName, "celular", cel.getX(), cel.getY());
             } else if (equipmentName.equals("tablet")) {
                 Tablet tablet = territory.getTablet(personName);
                 if (tablet != null) tablet.move(deltaX, deltaY);

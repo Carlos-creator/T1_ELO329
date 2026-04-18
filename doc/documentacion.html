@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Documentación T1 ELO329 — SimulatorTest</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #222; }
+    h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 8px; }
+    h2 { color: #34495e; margin-top: 40px; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    th { background: #2c3e50; color: white; padding: 8px 12px; text-align: left; }
+    td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
+    tr:nth-child(even) { background: #f5f5f5; }
+    .diagram-box { background: #f9f9f9; border: 1px solid #ccc; border-radius: 6px; padding: 20px; margin: 20px 0; }
+    .note { background: #eaf4fb; border-left: 4px solid #3498db; padding: 10px 16px; margin: 16px 0; border-radius: 3px; }
+    pre { background: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<h1>T1 ELO329 — Simulador EloTelTag / FindMy (Etapa 4)</h1>
+
+<h2>1. Integrantes</h2>
+<table>
+  <tr><th>Nombre</th><th>GitHub</th></tr>
+  <tr><td>Carlos Ramírez</td><td>Carlos-creator</td></tr>
+  <tr><td>Martín Pérez</td><td>Martinrpr</td></tr>
+  <tr><td>Nicolás Rogel</td><td>Nicolás Rogel</td></tr>
+  <tr><td>Yasin Morales</td><td>Yasin</td></tr>
+</table>
+
+<h2>2. Descripción General</h2>
+<p>
+  El sistema simula la localización de dispositivos personales (EloTelTag, Tablet, Celular) inspirado en AirTag.
+  Los <strong>EloTelTags</strong> y <strong>Tablets</strong> no tienen GPS propio; se reportan a través de cualquier
+  <strong>Celular</strong> cercano (distancia &lt; 10 m) hacia la nube <strong>ETnube</strong>, que registra la última
+  posición conocida de cada equipo. La aplicación <strong>FindMy</strong> consulta ETnube y muestra la ubicación de
+  todos los bienes de una persona.
+</p>
+
+<h2>3. Diagrama de Clases (Etapa 4)</h2>
+<div class="diagram-box">
+<div class="mermaid">
+classDiagram
+    class Equipo {
+        #String ownerName
+        #float x
+        #float y
+        +Equipo(owner, x, y)
+        +getX() float
+        +getY() float
+        +getOwnerName() String
+        +move(dx, dy)
+    }
+
+    class EloTelTag {
+        #String name
+        +EloTelTag(owner, name, x, y)
+        +getName() String
+        +isWithinRange(cell) boolean
+    }
+
+    class Tablet {
+        -Viewer viewer
+        +Tablet(owner, x, y, nube)
+        +findMy()
+    }
+
+    class Cellular {
+        -ETNube nube
+        +Cellular(owner, x, y, nube)
+        +reportTagLocation(tag)
+    }
+
+    class ETNube {
+        -ArrayList~Data~ cloudData
+        +updateLocation(owner, equipment, x, y)
+        +getLocation(owner, equipment) Point2D
+        +showOwnerLocations(owner)
+        +printHeader(output)
+        +printState(output, step)
+    }
+
+    class Territory {
+        -ArrayList~Cellular~ cellulars
+        -ArrayList~EloTelTag~ tags
+        -ArrayList~Tablet~ tablets
+        +addCellular(cel)
+        +addTag(tag)
+        +addTablet(tablet)
+        +getCellular(owner) Cellular
+        +getTag(owner, name) EloTelTag
+        +getTablet(owner) Tablet
+        +forEachTagTryToReportLocation()
+    }
+
+    class Viewer {
+        -String ownerName
+        -ETNube nube
+        +Viewer(owner, nube)
+        +show()
+    }
+
+    class SimulatorTest {
+        -Territory territory
+        -ETNube nube
+        -int step
+        +main(args)
+        +setupSimulator(in)
+        +runSimulation(in, output)
+    }
+
+    Equipo <|-- EloTelTag
+    EloTelTag <|-- Tablet
+    Equipo <|-- Cellular
+
+    Tablet --> Viewer
+    Cellular --> ETNube
+    Viewer --> ETNube
+
+    Territory o-- Cellular
+    Territory o-- EloTelTag
+    Territory o-- Tablet
+
+    SimulatorTest --> Territory
+    SimulatorTest --> ETNube
+</div>
+</div>
+
+<h2>4. Descripción de Clases</h2>
+<table>
+  <tr><th>Clase</th><th>Descripción</th></tr>
+  <tr><td><strong>Equipo</strong></td><td>Clase base abstracta. Almacena propietario y coordenadas (x,y); provee <code>move()</code>.</td></tr>
+  <tr><td><strong>EloTelTag</strong></td><td>Dispositivo rastreador. Tiene nombre propio; detecta si está dentro del rango de un Celular.</td></tr>
+  <tr><td><strong>Tablet</strong></td><td>Extiende EloTelTag; además posee un Viewer para ofrecer el servicio FindMy.</td></tr>
+  <tr><td><strong>Cellular</strong></td><td>Dispositivo con GPS. Reporta a ETnube la posición de cualquier tag o tablet cercano usando sus propias coordenadas.</td></tr>
+  <tr><td><strong>ETNube</strong></td><td>Servicio en la nube. Registra y provee la última posición reportada de cada equipo. Genera el archivo CSV.</td></tr>
+  <tr><td><strong>Territory</strong></td><td>Gestor del territorio. Mantiene listas de todos los dispositivos y coordina el ciclo de reporte.</td></tr>
+  <tr><td><strong>Viewer</strong></td><td>Muestra por pantalla las posiciones de todos los bienes de un propietario consultando ETnube.</td></tr>
+  <tr><td><strong>SimulatorTest</strong></td><td>Clase principal (etapa 4). Lee config.txt y move.txt, orquesta la simulación y genera output.csv.</td></tr>
+</table>
+
+<h2>5. Flujo de Localización</h2>
+<ol>
+  <li>El <strong>Celular</strong> (o la <strong>Tablet</strong>) se desplaza según los comandos de move.txt.</li>
+  <li>Después de cada movimiento, <code>Territory.forEachTagTryToReportLocation()</code> verifica qué EloTelTags y Tablets están a menos de 10 m de algún Celular.</li>
+  <li>El <strong>Celular</strong> cercano llama a <code>reportTagLocation(tag)</code>, que actualiza en <strong>ETnube</strong> la posición del tag con las coordenadas del propio celular.</li>
+  <li>El comando <strong>FindMy</strong> instancia un <code>Viewer</code> que consulta ETnube y muestra la última posición registrada de cada equipo del propietario.</li>
+</ol>
+
+<h2>6. Trayectorias en Excel</h2>
+<p>
+  Importe el archivo <code>output.csv</code> en Excel (separador: tabulación). Las columnas tienen la forma
+  <code>Persona.equipo.x</code> y <code>.y</code>. Para cada equipo, grafique las columnas <em>x</em> vs <em>y</em>
+  como un gráfico de dispersión con líneas, usando un color distinto por persona.
+</p>
+<div class="note">
+  <strong>Nota:</strong> La posición reportada en ETnube corresponde a las coordenadas del Celular que detectó el
+  dispositivo, no a las coordenadas reales del tag. Un tag no reportado mantiene su última posición conocida.
+</div>
+
+<h2>7. Compilación y Ejecución</h2>
+<pre>
+make          # compila src/*.java → .class en raíz
+make run      # java SimulatorTest config.txt move.txt
+make clean    # elimina los .class
+</pre>
+
+</body>
+</html>

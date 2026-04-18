@@ -1,6 +1,16 @@
-Juan.celular 0.5 -0.8
+Juan.celular -10 -15
 Juan.celular FindMy
-Pedro.celular 10 10
+Juan.celular -10 -15
+Juan.celular -5 -7
+Juan.celular FindMy
+Pedro.celular 3 -3
 Pedro.celular FindMy
-Diego.mochila -2.0 2.0
+Pedro.celular 3 -3
+Pedro.celular 3 -3
+Pedro.celular FindMy
+Diego.celular -5 5
+Diego.tablet -3 -2
 Diego.tablet FindMy
+Diego.celular -5 5
+Diego.mochila -2 1
+Diego.celular FindMy
