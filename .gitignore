@@ -15,3 +15,5 @@ output.csv
 
 bin/
 
+# Claude Code
+.claude/
