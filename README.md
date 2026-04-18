@@ -7,7 +7,7 @@ Simulación en Java de un sistema de localización de dispositivos inspirado en 
 | Nombre | GitHub |
 |---|---|
 | Carlos Ramírez | Carlos-creator |
-| Martín | Martinrpr |
+| Martín Pérez| Martinrpr |
 | Nicolás Rogel | Nicolás Rogel |
 | Yasin Morales | Yasin |
 
