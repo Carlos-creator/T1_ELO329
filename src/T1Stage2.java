@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Scanner;
 
-//Este es el codigo base para la stage 2 entregado por el profe :P
+//Este es el codigo base para la stage 2
 
 public class T1Stage2 {
     T1Stage2() {
@@ -19,9 +19,11 @@ public class T1Stage2 {
         }
         Scanner confFile = new Scanner(new File(args[0]));
         Scanner movFile = new Scanner(new File(args[1]));
+        PrintStream fileOut = new PrintStream("nube.txt");
         T1Stage2 stage = new T1Stage2();
         stage.setupSimulator(confFile);  // read configuration file and create objects
-        stage.runSimulation(movFile, System.out); // execute file's instructions
+        stage.runSimulation(movFile, fileOut); // execute file's instructions
+        fileOut.close();
     }
     public void setupSimulator(Scanner in) {  // create objects from file
         int personNumber = in.nextInt();
